@@ -1,10 +1,10 @@
-import { Dispatch, SetStateAction, useEffect, useState } from 'react'
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react'
 import { FaArrowRotateRight, FaPause, FaPlay, FaXmark } from 'react-icons/fa6'
 import { checkAll, checkAllCols, checkAllGrids, checkAllRows, getNumbersCount, isSolved } from '../actions/checkActions'
-import { getHint, isFixedCell, solve } from '../actions/solveActions'
+import { checkSolution, getCellValue, getHint, isFixedCell, solve } from '../actions/solveActions'
 import Grid from '../components/Grid'
 import Keyboard from '../components/Keyboard'
-import { t_board, t_difficulty, t_numbers_count } from '../types/types'
+import { t_board, t_cell, t_difficulty, t_numbers_count } from '../types/types'
 import Timer from './Timer'
 
 type Props = {
@@ -19,9 +19,14 @@ type Props = {
 
 function Game({ fixedValues, setFixedValues, solution, setSolution, difficulty, setPlay, custom = false }: Props) {
 	const [values, setValues] = useState(fixedValues)
+	const previousValues = useRef<t_board>(fixedValues)
+	const history = useRef<t_board[]>([])
+	const historyIndex = useRef<number>(0)
 	const [pressedKey, setPressedKey] = useState<number>(0)
-	const [selectedCell, setSelectedCell] = useState<{ row: number, col: number }>({ row: -1, col: -1 })
-	const [highlightedCell, setHighlightedCell] = useState<{ row: number, col: number }[]>([])
+	const [selectedCell, setSelectedCell] = useState<t_cell>({ row: -1, col: -1 })
+	const [selectedValue, setSelectedValue] = useState<number>(-1)
+	const [conflictedCells, setConflictedCells] = useState<t_cell[]>([])
+	const [wrongCells, setWrongCells] = useState<t_cell[]>([])
 	const [numbersCount, setNumbersCount] = useState<t_numbers_count>()
 	const [paused, setPaused] = useState<boolean>(false)
 	const [editing, setEditing] = useState<boolean>(custom)
@@ -33,6 +38,16 @@ function Game({ fixedValues, setFixedValues, solution, setSolution, difficulty, 
 		setValues(fixedValues)
 	}, [fixedValues])
 
+	const updateWrongCells = () => {
+		for (let row = 0; row < values.length; row++) {
+			for (let col = 0; col < values[row].length; col++) {
+				const currentCell = { row, col }
+				const cellValue = getCellValue(values, currentCell)
+				if (cellValue != getCellValue(previousValues.current, currentCell))
+					setWrongCells(prev => prev.filter(cell => cell.row != currentCell.row || cell.col != currentCell.col))
+			}
+		}
+	}
 
 	useEffect(() => {
 		if (!editing && isSolved(values)) {
@@ -44,11 +59,13 @@ function Game({ fixedValues, setFixedValues, solution, setSolution, difficulty, 
 			const result = checkAll(values)
 			// console.log('All chech:', result)
 			if (result.status == 'FAILED')
-				setHighlightedCell(prev => [...prev, ...result.conflicts])
+				setConflictedCells(prev => [...prev, ...result.conflicts])
 		}
 		setNumbersCount(getNumbersCount(values))
+		updateWrongCells()
+		previousValues.current = values
 		return () => {
-			setHighlightedCell([])
+			setConflictedCells([])
 		}
 	}, [values])
 
@@ -65,12 +82,12 @@ function Game({ fixedValues, setFixedValues, solution, setSolution, difficulty, 
 		if (pressedKey < 0 || paused) return
 		// console.log('Pressed Key:', pressedKey)
 		if (pressedKey == 10) {
-			console.log('Rows chech:', checkAllRows(values))
-
+			// console.log('Rows chech:', checkAllRows(values))
+			historyIndex.current -= historyIndex.current ? 1 : 0
 		}
 		if (pressedKey == 11) {
-			console.log('Grids chech:', checkAllGrids(values))
-
+			// console.log('Grids chech:', checkAllGrids(values))
+			historyIndex.current += historyIndex.current == history.current.length - 1 ? 1 : 0
 		}
 		if (pressedKey == 12) {
 			const sol = await getSolution()
@@ -81,12 +98,18 @@ function Game({ fixedValues, setFixedValues, solution, setSolution, difficulty, 
 			}
 		}
 		if (pressedKey == 13) {
-			const result = checkAll(values)
-			console.log('All chech:', result)
-			if (result.status == 'FAILED')
-				setHighlightedCell(prev => [...prev, ...result.conflicts])
-			if (result.status == 'PASSED')
-				alert('Everything is okay')
+			const sol = await getSolution()
+			if (sol) {
+				const result = checkSolution(sol, values)
+				console.log('All chech:', result)
+				if (!result.correct) {
+					setWrongCells(result.wrongCells)
+					alert(`Sorry, you have made some errors!`)
+				}
+				else
+					alert(`Everything is okay. ${result.cellsLeft} cells to go`)
+			}
+			else alert(`There is no solution`)
 		}
 		if (pressedKey == 14) {
 			const result = await getSolution()
@@ -95,6 +118,7 @@ function Game({ fixedValues, setFixedValues, solution, setSolution, difficulty, 
 		}
 
 		if (pressedKey >= 0 && pressedKey <= 9) {
+			setSelectedValue(prev => pressedKey > 0 ? pressedKey : prev)
 			if (selectedCell.row >= 0 && selectedCell.row <= 9) {
 				if (editing) {
 					setFixedValues((prev) => {
@@ -106,17 +130,33 @@ function Game({ fixedValues, setFixedValues, solution, setSolution, difficulty, 
 				else if (!isFixedCell(fixedValues, selectedCell))
 					setValues(prev => {
 						const newValues = prev.map(row => [...row]);
+						// if (getCellValue(newValues, selectedCell) != pressedKey) {
+						// 	setWrongCells(prev => prev.filter(cell => cell.row != selectedCell.row || cell.col != selectedCell.col))
+						// }
 						newValues[selectedCell.row][selectedCell.col] = pressedKey;
+						// history.current = [...history.current, newValues]
+						// historyIndex.current++
 						return newValues
 					})
 			}
 		}
+		else setSelectedValue(-1)
 		setPressedKey(-1)
 	}
 
 	useEffect(() => {
 		handeKeyPressed(pressedKey)
 	}, [pressedKey])
+
+	useEffect(() => {
+		const selectedCellValue = getCellValue(values, selectedCell)
+		// console.log(selectedCell, selectedCellValue)
+		setSelectedValue(prev => {
+			// if (selectedCellValue == -1) return -1
+			if (selectedCellValue != 0) return selectedCellValue
+			return prev
+		})
+	}, [selectedCell])
 
 	const handleReset = () => {
 		setSeconds(0)
@@ -161,11 +201,13 @@ function Game({ fixedValues, setFixedValues, solution, setSolution, difficulty, 
 					setValues={setValues}
 					selectedCell={selectedCell}
 					setSelectedCell={setSelectedCell}
-					highlightedCell={highlightedCell}
+					conflictedCells={conflictedCells}
+					wrongCells={wrongCells}
 					covered={paused}
+					selectedValue={selectedValue}
 				/>
 				<div className='w-fit self-center'>
-					<Keyboard setPressedKey={setPressedKey} counts={numbersCount} />
+					<Keyboard setPressedKey={setPressedKey} counts={numbersCount} historyLenght={history.current.length} historyIndex={historyIndex.current}/>
 				</div>
 
 			</div>

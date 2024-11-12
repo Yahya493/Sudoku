@@ -1,14 +1,17 @@
-import { Dispatch, SetStateAction } from 'react'
-import Button from './Button'
-import { t_numbers_count } from '../types/types'
-import { FaEraser, FaFileSignature, FaMagnifyingGlass } from "react-icons/fa6"
-import { HiLightBulb, HiOutlineLightBulb } from "react-icons/hi";
+import { Dispatch, SetStateAction } from 'react';
+import { FaEraser, FaFileSignature, FaMagnifyingGlass } from "react-icons/fa6";
+import { IoArrowUndo, IoArrowRedo } from "react-icons/io5";
+import { HiLightBulb } from "react-icons/hi";
+import { t_numbers_count } from '../types/types';
+import Button from './Button';
 
 type Props = {
 	setPressedKey: Dispatch<SetStateAction<number>>,
-	counts: t_numbers_count | undefined
+	counts: t_numbers_count | undefined,
+	historyLenght: number, 
+	historyIndex: number, 
 }
-const Keyboard = ({ setPressedKey, counts }: Props) => {
+const Keyboard = ({ setPressedKey, counts, historyIndex, historyLenght }: Props) => {
 
 	return (
 		<div className=' bg-gray-50 w-fit'>
@@ -26,9 +29,9 @@ const Keyboard = ({ setPressedKey, counts }: Props) => {
 				<Button label='9' value={9} setPressedKey={setPressedKey} highlighted={counts?.nine == 9}/>
 				<Button label='Erase' value={0} setPressedKey={setPressedKey} icon={<FaEraser/>}/>
 			</div>
-			<div className=' flex select-none'>
-				<Button label='R' value={10} setPressedKey={setPressedKey} />
-				<Button label='G' value={11} setPressedKey={setPressedKey} />
+			<div className=' flex select-none justify-end'>
+				<Button label='Undo' value={10} disabled={historyIndex <= 0} setPressedKey={setPressedKey} icon={<IoArrowUndo />} />
+				<Button label='Redo' value={11} disabled={historyIndex >= historyLenght} setPressedKey={setPressedKey} icon={<IoArrowRedo />} />
 				<Button label='Hint' value={12} setPressedKey={setPressedKey} icon={<HiLightBulb />}/>
 				<Button label='Check' value={13} setPressedKey={setPressedKey} icon={<FaMagnifyingGlass />}/>
 				<Button label='Solve' value={14} setPressedKey={setPressedKey} icon={<FaFileSignature />}/>

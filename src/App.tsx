@@ -7,7 +7,7 @@ import { t_board, t_difficulty } from './types/types'
 import SudokuExtractor from './components/SudokuExtractor'
 
 function App() {
-	const [difficulty, setDifficulty] = useState<t_difficulty>('HARD')
+	const [difficulty, setDifficulty] = useState<t_difficulty>('MEDIUM')
 	const [game, setGame] = useState<t_board | null>(null)
 	const [solution, setSolution] = useState<t_board | null>(null)
 	const [play, setPlay] = useState<boolean>(false)

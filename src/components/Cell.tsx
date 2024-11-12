@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction } from "react"
-import { FaEraser } from "react-icons/fa6"
+import { FaEraser, FaX } from "react-icons/fa6"
 
 type Props = {
 	row: number,
@@ -10,11 +10,12 @@ type Props = {
 	covered?: boolean,
 	highlighted?: boolean,
 	conflected?: boolean,
+	wrong?: boolean,
 	setSelectedCell: Dispatch<SetStateAction<{ row: number, col: number }>>,
 	// setValue: (newValue: number) => void
 }
 
-const Cell = ({ row, col, value, editable = true, selected = false, highlighted = false, conflected = false, covered = false, setSelectedCell }: Props) => {
+const Cell = ({ row, col, value, editable = true, selected = false, highlighted = false, conflected = false, wrong = false, covered = false, setSelectedCell }: Props) => {
 	const handleEdit = () => {
 		setSelectedCell(prev => {
 			if (prev.row == row && prev.col == col)
@@ -37,6 +38,13 @@ const Cell = ({ row, col, value, editable = true, selected = false, highlighted 
 					</span> :
 					null}
 			</div>
+			{
+				wrong && !covered ?
+					<div className={`flex justify-center items-center w-full h-full text-2xl text-red-500`}>
+						<FaX />
+					</div> :
+					null
+			}
 		</div>
 	)
 }

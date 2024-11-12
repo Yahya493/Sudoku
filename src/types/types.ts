@@ -34,10 +34,17 @@ type t_numbers_count = {
 type t_difficulty = 'EASY' | 'MEDIUM' | 'HARD';
 type t_board = number[][];
 
+type t_check_solution = {
+	correct: boolean,
+	cellsLeft: number,
+	wrongCells: t_cell[]
+}
+
 export type { 
 	t_numbers_count,
 	t_check_result,
 	t_cell,
 	t_difficulty,
-	t_board
+	t_board,
+	t_check_solution
 }

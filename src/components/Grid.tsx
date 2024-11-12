@@ -1,19 +1,22 @@
 import { Dispatch, SetStateAction } from 'react'
 import { containsCell } from '../actions/checkActions'
-import { t_board } from '../types/types'
+import { t_board, t_cell } from '../types/types'
 import Cell from './Cell'
+import { getCellValue } from '../actions/solveActions'
 
 type Props = {
 	values: t_board,
 	fixedValues: t_board,
 	covered?: boolean,
-	highlightedCell: { row: number, col: number }[],
+	conflictedCells: t_cell[],
+	wrongCells: t_cell[],
 	setValues: Dispatch<SetStateAction<t_board>>,
-	selectedCell: { row: number, col: number },
-	setSelectedCell: Dispatch<SetStateAction<{ row: number, col: number }>>
+	selectedCell: t_cell,
+	setSelectedCell: Dispatch<SetStateAction<t_cell>>,
+	selectedValue: number
 }
 
-const Grid = ({ values, fixedValues, setValues, selectedCell, setSelectedCell, highlightedCell, covered=true }: Props) => {
+const Grid = ({ values, fixedValues, setValues, selectedCell, setSelectedCell, conflictedCells, wrongCells, covered = true, selectedValue }: Props) => {
 	// const setCellValue = (row: number, col: number, value: number) => {
 	// 	setValues(prev => {
 	// 		const newValues = prev.map(row => [...row]);
@@ -22,17 +25,26 @@ const Grid = ({ values, fixedValues, setValues, selectedCell, setSelectedCell, h
 	// 	})
 	// }
 
-	const isConflectedCell = (row: number, col: number): boolean => {
-		return containsCell(highlightedCell, {row, col})
+	const isConflictedCell = (cell: t_cell): boolean => {
+		return containsCell(conflictedCells, cell)
 	}
 
-	const isSelectedCell = (row: number, col: number): boolean => {
-		return selectedCell.row == row && selectedCell.col == col
+	const isSelectedCell = (cell: t_cell): boolean => {
+		return selectedCell.row == cell.row && selectedCell.col == cell.col
 	}
 
-	const isHighlightedCell = (row: number, col: number): boolean => {
-		if (selectedCell.row < 0 || selectedCell.col < 0) return false
-		return values[row][col] != 0 && values[row][col] == values[selectedCell.row][selectedCell.col]
+	const isHighlightedCell = (cell: t_cell): boolean => {
+		if (selectedValue < 0) return false
+		const cellValue = getCellValue(values, cell)
+		return cellValue != 0 && cellValue == selectedValue
+	}
+
+	const isWrongCell = (cell: t_cell): boolean => {
+		for (const wrongCell of wrongCells) {
+			if (wrongCell.row == cell.row && wrongCell.col == cell.col)
+				return true
+		}
+		return false
 	}
 
 	return (
@@ -42,16 +54,18 @@ const Grid = ({ values, fixedValues, setValues, selectedCell, setSelectedCell, h
 					<div key={'row_' + row_index}>
 						<div className=' flex'>
 							{
-								row.map((cellValue, col_index) =>
-									<div key={'cell_' + row_index + col_index} className=' flex'>
+								row.map((cellValue, col_index) => {
+									const cell = { row: row_index, col: col_index }
+									return <div key={'cell_' + row_index + col_index} className=' flex'>
 										<Cell row={row_index} col={col_index} value={cellValue ? cellValue : values[row_index][col_index]} editable={!cellValue} /*setValue={(newValue) => setCellValue(row_index, col_index, newValue)}*/
-											selected={isSelectedCell(row_index, col_index)} highlighted={isHighlightedCell(row_index, col_index)}
-											setSelectedCell={setSelectedCell} conflected={isConflectedCell(row_index, col_index)} covered={covered}/>
+											selected={isSelectedCell(cell)} highlighted={isHighlightedCell(cell)}
+											setSelectedCell={setSelectedCell} conflected={isConflictedCell(cell)} wrong={isWrongCell(cell)} covered={covered} />
 										{
 											(col_index + 1) % 3 == 0 && col_index != 8 ?
 												<div className=' block w-1 h-full bg-blue-400'></div> : null
 										}
 									</div>
+								}
 								)
 							}
 						</div>

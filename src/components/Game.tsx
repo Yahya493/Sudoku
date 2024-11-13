@@ -1,6 +1,6 @@
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react'
 import { FaArrowRotateRight, FaPause, FaPlay, FaXmark } from 'react-icons/fa6'
-import { checkAll, checkAllCols, checkAllGrids, checkAllRows, getNumbersCount, isSolved } from '../actions/checkActions'
+import { checkAll, getNumbersCount, isSolved } from '../actions/checkActions'
 import { checkSolution, getCellValue, getHint, isFixedCell, solve } from '../actions/solveActions'
 import Grid from '../components/Grid'
 import Keyboard from '../components/Keyboard'
@@ -20,9 +20,9 @@ type Props = {
 function Game({ fixedValues, setFixedValues, solution, setSolution, difficulty, setPlay, custom = false }: Props) {
 	const [values, setValues] = useState(fixedValues)
 	const previousValues = useRef<t_board>(fixedValues)
-	const history = useRef<t_board[]>([])
-	const historyIndex = useRef<number>(0)
-	const [pressedKey, setPressedKey] = useState<number>(0)
+	const history = useRef<t_board[]>([fixedValues])
+	const [historyIndex, setHistoryIndex] = useState<number>(0)
+	const [pressedKey, setPressedKey] = useState<number>(-1)
 	const [selectedCell, setSelectedCell] = useState<t_cell>({ row: -1, col: -1 })
 	const [selectedValue, setSelectedValue] = useState<number>(-1)
 	const [conflictedCells, setConflictedCells] = useState<t_cell[]>([])
@@ -38,6 +38,11 @@ function Game({ fixedValues, setFixedValues, solution, setSolution, difficulty, 
 		setValues(fixedValues)
 	}, [fixedValues])
 
+	useEffect(() => {
+		if (history.current.length && historyIndex >= 0 && historyIndex <= history.current.length)
+			setValues(history.current[historyIndex])
+	}, [historyIndex])
+
 	const updateWrongCells = () => {
 		for (let row = 0; row < values.length; row++) {
 			for (let col = 0; col < values[row].length; col++) {
@@ -50,9 +55,10 @@ function Game({ fixedValues, setFixedValues, solution, setSolution, difficulty, 
 	}
 
 	useEffect(() => {
-		if (!editing && isSolved(values)) {
+		if (isSolved(values)) {
 			setGameOver(true)
-			alert("Congratulation!")
+			if (!editing)
+				alert("Congratulation!")
 		}
 		else {
 			setGameOver(false)
@@ -78,23 +84,30 @@ function Game({ fixedValues, setFixedValues, solution, setSolution, difficulty, 
 		return result
 	}
 
-	const handeKeyPressed = async (pressedKey: number) => {
-		if (pressedKey < 0 || paused) return
+	const handleKeyPressed = async (pressedKey: number) => {
+		// if (pressedKey < 0 || paused) return
 		// console.log('Pressed Key:', pressedKey)
 		if (pressedKey == 10) {
 			// console.log('Rows chech:', checkAllRows(values))
-			historyIndex.current -= historyIndex.current ? 1 : 0
+			setHistoryIndex(prev => prev > 0 ? prev - 1 : prev)
 		}
 		if (pressedKey == 11) {
 			// console.log('Grids chech:', checkAllGrids(values))
-			historyIndex.current += historyIndex.current == history.current.length - 1 ? 1 : 0
+			setHistoryIndex(prev => prev < history.current.length - 1 ? prev + 1 : prev)
+
 		}
 		if (pressedKey == 12) {
 			const sol = await getSolution()
 			if (sol) {
 				const result = getHint(sol, values)
 				if (result)
-					setValues(result)
+					setValues(() => {
+						if (historyIndex < history.current.length - 1)
+							history.current = history.current.filter((_, index) => index <= historyIndex)
+						history.current = [...history.current, result]
+						setHistoryIndex(prev => prev + 1)
+						return result
+					})
 			}
 		}
 		if (pressedKey == 13) {
@@ -114,7 +127,13 @@ function Game({ fixedValues, setFixedValues, solution, setSolution, difficulty, 
 		if (pressedKey == 14) {
 			const result = await getSolution()
 			if (result)
-				setValues(result)
+				setValues(() => {
+					if (!editing && historyIndex < history.current.length - 1)
+						history.current = history.current.filter((_, index) => index <= historyIndex)
+					history.current = editing ? [fixedValues] : [...history.current, result]
+					setHistoryIndex(prev => editing ? 0 : prev + 1)
+					return result
+				})
 		}
 
 		if (pressedKey >= 0 && pressedKey <= 9) {
@@ -127,17 +146,20 @@ function Game({ fixedValues, setFixedValues, solution, setSolution, difficulty, 
 						return newValues
 					})
 				}
-				else if (!isFixedCell(fixedValues, selectedCell))
+				else if (!isFixedCell(fixedValues, selectedCell)) {
 					setValues(prev => {
 						const newValues = prev.map(row => [...row]);
 						// if (getCellValue(newValues, selectedCell) != pressedKey) {
 						// 	setWrongCells(prev => prev.filter(cell => cell.row != selectedCell.row || cell.col != selectedCell.col))
 						// }
 						newValues[selectedCell.row][selectedCell.col] = pressedKey;
-						// history.current = [...history.current, newValues]
-						// historyIndex.current++
+						if (historyIndex < history.current.length - 1)
+							history.current = history.current.filter((_, index) => index <= historyIndex)
+						history.current = [...history.current, newValues]
+						setHistoryIndex(prev => prev + 1)
 						return newValues
 					})
+				}
 			}
 		}
 		else setSelectedValue(-1)
@@ -145,7 +167,8 @@ function Game({ fixedValues, setFixedValues, solution, setSolution, difficulty, 
 	}
 
 	useEffect(() => {
-		handeKeyPressed(pressedKey)
+		if (pressedKey < 0 || paused) return
+		handleKeyPressed(pressedKey)
 	}, [pressedKey])
 
 	useEffect(() => {
@@ -162,6 +185,8 @@ function Game({ fixedValues, setFixedValues, solution, setSolution, difficulty, 
 		setSeconds(0)
 		// setGameOver(false)
 		setValues(fixedValues)
+		history.current = [fixedValues]
+		setHistoryIndex(0)
 	}
 
 	return (
@@ -174,6 +199,10 @@ function Game({ fixedValues, setFixedValues, solution, setSolution, difficulty, 
 						onClick={() => setPlay(false)}
 						title='Exit'
 					><FaXmark /></button>
+					<button className='py-1 px-2 bg-slate-800 text-slate-200 rounded-md hover:bg-slate-600'
+						onClick={handleReset}
+						title='Reset'
+					><FaArrowRotateRight /></button>
 					{editing ?
 						<>
 							<button className='py-1 px-2 bg-slate-800 text-slate-200 rounded-md hover:bg-slate-600'
@@ -182,10 +211,6 @@ function Game({ fixedValues, setFixedValues, solution, setSolution, difficulty, 
 							><FaPlay /></button>
 						</> :
 						<>
-							<button className='py-1 px-2 bg-slate-800 text-slate-200 rounded-md hover:bg-slate-600'
-								onClick={handleReset}
-								title='Reset'
-							><FaArrowRotateRight /></button>
 							<button className='py-1 px-2 bg-slate-800 text-slate-200 rounded-md hover:bg-slate-600'
 								onClick={() => setPaused(prev => !prev)}
 								title={paused ? 'Continue' : 'Pause'}
@@ -198,7 +223,6 @@ function Game({ fixedValues, setFixedValues, solution, setSolution, difficulty, 
 				<Grid
 					values={values}
 					fixedValues={fixedValues}
-					setValues={setValues}
 					selectedCell={selectedCell}
 					setSelectedCell={setSelectedCell}
 					conflictedCells={conflictedCells}
@@ -207,7 +231,7 @@ function Game({ fixedValues, setFixedValues, solution, setSolution, difficulty, 
 					selectedValue={selectedValue}
 				/>
 				<div className='w-fit self-center'>
-					<Keyboard setPressedKey={setPressedKey} counts={numbersCount} historyLenght={history.current.length} historyIndex={historyIndex.current}/>
+					<Keyboard setPressedKey={setPressedKey} counts={numbersCount} historyLenght={history.current.length} historyIndex={historyIndex} editing={editing} gameOver={gameOver} />
 				</div>
 
 			</div>

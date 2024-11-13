@@ -3,13 +3,14 @@ import Tesseract from 'tesseract.js';
 import { isEmptyBoard } from '../actions/checkActions';
 import { t_board } from '../types/types';
 
+declare const cv: any
+
 type Props = {
-	sudokuBoard: t_board | null,
 	setSudokuBoard: Dispatch<SetStateAction<t_board | null>>,
 	setCustomGame: Dispatch<SetStateAction<boolean>>
 }
 
-const SudokuExtractor: React.FC<Props> = ({ sudokuBoard, setSudokuBoard, setCustomGame }) => {
+const SudokuExtractor: React.FC<Props> = ({ setSudokuBoard, setCustomGame }) => {
 	// const [sudokuBoard, setSudokuBoard] = useState<t_board | null>(null);
 	const [image, setImage] = useState<File | null>(null);
 	const [loading, setLoading] = useState(false);
@@ -100,7 +101,7 @@ const SudokuExtractor: React.FC<Props> = ({ sudokuBoard, setSudokuBoard, setCust
 	};
 
 	// Function to split into cells and recognize digits with Tesseract
-	const extractDigits = async (board: any): t_board => {
+	const extractDigits = async (board: any): Promise<t_board> => {
 		const cellSize = board.size().width / 9;
 		const sudokuArray: t_board = Array.from({ length: 9 }, () => Array(9).fill(0));
 

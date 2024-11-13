@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction } from "react"
-import { FaEraser, FaX } from "react-icons/fa6"
+import { FaX } from "react-icons/fa6"
 
 type Props = {
 	row: number,

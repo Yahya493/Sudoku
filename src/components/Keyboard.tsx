@@ -9,12 +9,14 @@ type Props = {
 	setPressedKey: Dispatch<SetStateAction<number>>,
 	counts: t_numbers_count | undefined,
 	historyLenght: number, 
-	historyIndex: number, 
+	historyIndex: number,
+	editing: boolean,
+	gameOver: boolean,
 }
-const Keyboard = ({ setPressedKey, counts, historyIndex, historyLenght }: Props) => {
+const Keyboard = ({ setPressedKey, counts, historyIndex, historyLenght, editing, gameOver }: Props) => {
 
 	return (
-		<div className=' bg-gray-50 w-fit'>
+		<div className=' bg-slate-200 w-fit'>
 			<div className=' flex select-none'>
 				<Button label='1' value={1} setPressedKey={setPressedKey} highlighted={counts?.one == 9}/>
 				<Button label='2' value={2} setPressedKey={setPressedKey} highlighted={counts?.two == 9}/>
@@ -31,10 +33,10 @@ const Keyboard = ({ setPressedKey, counts, historyIndex, historyLenght }: Props)
 			</div>
 			<div className=' flex select-none justify-end'>
 				<Button label='Undo' value={10} disabled={historyIndex <= 0} setPressedKey={setPressedKey} icon={<IoArrowUndo />} />
-				<Button label='Redo' value={11} disabled={historyIndex >= historyLenght} setPressedKey={setPressedKey} icon={<IoArrowRedo />} />
-				<Button label='Hint' value={12} setPressedKey={setPressedKey} icon={<HiLightBulb />}/>
-				<Button label='Check' value={13} setPressedKey={setPressedKey} icon={<FaMagnifyingGlass />}/>
-				<Button label='Solve' value={14} setPressedKey={setPressedKey} icon={<FaFileSignature />}/>
+				<Button label='Redo' value={11} disabled={historyIndex >= historyLenght - 1} setPressedKey={setPressedKey} icon={<IoArrowRedo />} />
+				<Button label='Hint' value={12} disabled={editing || gameOver} setPressedKey={setPressedKey} icon={<HiLightBulb />}/>
+				<Button label='Check' value={13} disabled={editing || gameOver} setPressedKey={setPressedKey} icon={<FaMagnifyingGlass />}/>
+				<Button label='Solve' value={14} disabled={gameOver} setPressedKey={setPressedKey} icon={<FaFileSignature />}/>
 			</div>
 		</div>
 	)

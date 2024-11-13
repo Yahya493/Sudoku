@@ -10,13 +10,12 @@ type Props = {
 	covered?: boolean,
 	conflictedCells: t_cell[],
 	wrongCells: t_cell[],
-	setValues: Dispatch<SetStateAction<t_board>>,
 	selectedCell: t_cell,
 	setSelectedCell: Dispatch<SetStateAction<t_cell>>,
 	selectedValue: number
 }
 
-const Grid = ({ values, fixedValues, setValues, selectedCell, setSelectedCell, conflictedCells, wrongCells, covered = true, selectedValue }: Props) => {
+const Grid = ({ values, fixedValues, selectedCell, setSelectedCell, conflictedCells, wrongCells, covered = true, selectedValue }: Props) => {
 	// const setCellValue = (row: number, col: number, value: number) => {
 	// 	setValues(prev => {
 	// 		const newValues = prev.map(row => [...row]);
@@ -48,7 +47,7 @@ const Grid = ({ values, fixedValues, setValues, selectedCell, setSelectedCell, c
 	}
 
 	return (
-		<div className=' bg-slate-50 w-fit border-4 border-blue-400 select-none'>
+		<div className=' bg-slate-200 w-fit border-4 border-blue-400 select-none'>
 			{
 				fixedValues.map((row, row_index) =>
 					<div key={'row_' + row_index}>

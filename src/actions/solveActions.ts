@@ -1,5 +1,5 @@
 import { t_board, t_cell, t_check_solution } from "../types/types"
-import { checkAll, checkByCell, isFilled, isSolved } from "./checkActions"
+import { checkAll, checkByCell, isSolved } from "./checkActions"
 
 const getNextCell = (cell: t_cell): t_cell | null => {
 	if (cell.col < 8)
@@ -204,7 +204,7 @@ const duplicateValues = (fixedValues: t_board): t_board => {
 // }
 
 const solve = (fixedValues: t_board): Promise<t_board | null> => {
-	return new Promise((resolve, reject) => {
+	return new Promise((resolve) => {
 		if (checkAll(fixedValues).status != 'PASSED')
 			resolve(null)
 		// let solution = duplicateValues(fixedValues)
@@ -256,11 +256,6 @@ const checkSolution = (solution: t_board | null, values: t_board): t_check_solut
 }
 
 export {
-	solve,
-	incrementCell,
-	getHint,
-	isFixedCell,
-	getCellValue,
-	isEmptyCell,
-	checkSolution
+	checkSolution, getCellValue, getHint, incrementCell, isEmptyCell, isFixedCell, solve, setCellValue
 }
+

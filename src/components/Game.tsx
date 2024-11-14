@@ -58,7 +58,7 @@ function Game({ fixedValues, setFixedValues, solution, setSolution, difficulty, 
 		if (isSolved(values)) {
 			setGameOver(true)
 			if (!editing)
-				alert("Congratulation!")
+				alert("Game Over, Congratulation!")
 		}
 		else {
 			setGameOver(false)
@@ -191,7 +191,7 @@ function Game({ fixedValues, setFixedValues, solution, setSolution, difficulty, 
 
 	return (
 		<>
-			<div className='bg-slate-200 text-slate-800 rounded-b-md flex justify-between py-2 px-4 font-bold border-4 border-x-blue-400 border-b-blue-400 mb-2'>
+			<div className='w-full bg-slate-200 text-slate-800 rounded-b-md flex justify-between py-2 px-4 font-bold border-4 border-x-blue-400 border-b-blue-400 mb-2'>
 				<Timer seconds={seconds} setSeconds={setSeconds} paused={editing || paused || gameOver} />
 				<div className=''>{custom ? 'CUSTOM' : difficulty}</div>
 				<div className=' flex justify-end gap-2'>
@@ -219,21 +219,22 @@ function Game({ fixedValues, setFixedValues, solution, setSolution, difficulty, 
 					}
 				</div>
 			</div>
-			<div className=' w-fit font-bold flex flex-col md:flex-row gap-4'>
-				<Grid
-					values={values}
-					fixedValues={fixedValues}
-					selectedCell={selectedCell}
-					setSelectedCell={setSelectedCell}
-					conflictedCells={conflictedCells}
-					wrongCells={wrongCells}
-					covered={paused}
-					selectedValue={selectedValue}
-				/>
-				<div className='w-fit self-center'>
-					<Keyboard setPressedKey={setPressedKey} counts={numbersCount} historyLenght={history.current.length} historyIndex={historyIndex} editing={editing} gameOver={gameOver} />
+			<div className='flex justify-center w-full'>
+				<div className=' w-fit font-bold flex flex-col md:flex-row gap-4'>
+					<Grid
+						values={values}
+						fixedValues={fixedValues}
+						selectedCell={selectedCell}
+						setSelectedCell={setSelectedCell}
+						conflictedCells={conflictedCells}
+						wrongCells={wrongCells}
+						covered={paused}
+						selectedValue={selectedValue}
+					/>
+					<div className='w-fit self-center'>
+						<Keyboard setPressedKey={setPressedKey} counts={numbersCount} historyLenght={history.current.length} historyIndex={historyIndex} editing={editing} gameOver={gameOver} />
+					</div>
 				</div>
-
 			</div>
 		</>
 	)

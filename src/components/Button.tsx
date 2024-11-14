@@ -15,7 +15,7 @@ const Button = ({ label, value, setPressedKey, highlighted = false, icon, disabl
 				if (disabled) return
 				setPressedKey(value)
 			}}
-			title={icon ? label : undefined}
+			title={icon && !disabled ? label : undefined}
 		>
 			<div className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'>
 				<span className=' font-bold text-2xl text-shadow shadow-yellow-200'>

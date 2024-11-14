@@ -47,31 +47,31 @@ const Grid = ({ values, fixedValues, selectedCell, setSelectedCell, conflictedCe
 	}
 
 	return (
-		<div className=' bg-slate-200 w-fit border-4 border-blue-400 select-none'>
+		<div className=' bg-slate-200 w-full border-4 border-blue-400 select-none'>
 			{
 				fixedValues.map((row, row_index) =>
 					<div key={'row_' + row_index}>
-						<div className=' flex'>
+						<div className={` flex border-blue-400 ${(row_index + 1) % 3 == 0 && row_index != 8?'border-b-4':''}`}>
 							{
 								row.map((cellValue, col_index) => {
 									const cell = { row: row_index, col: col_index }
-									return <div key={'cell_' + row_index + col_index} className=' flex'>
+									return <div key={'cell_' + row_index + col_index} className={` flex border-blue-400 ${(col_index + 1) % 3 == 0 && col_index != 8?'border-r-4':''}`}>
 										<Cell row={row_index} col={col_index} value={cellValue ? cellValue : values[row_index][col_index]} editable={!cellValue} /*setValue={(newValue) => setCellValue(row_index, col_index, newValue)}*/
 											selected={isSelectedCell(cell)} highlighted={isHighlightedCell(cell)}
 											setSelectedCell={setSelectedCell} conflected={isConflictedCell(cell)} wrong={isWrongCell(cell)} covered={covered} />
-										{
+										{/* {
 											(col_index + 1) % 3 == 0 && col_index != 8 ?
 												<div className=' block w-1 h-full bg-blue-400'></div> : null
-										}
+										} */}
 									</div>
 								}
 								)
 							}
 						</div>
-						{
+						{/* {
 							(row_index + 1) % 3 == 0 && row_index != 8 ?
 								<div className=' block w-full h-1 bg-blue-400'></div> : null
-						}
+						} */}
 					</div>
 				)
 			}

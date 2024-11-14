@@ -275,6 +275,7 @@ export {
 	isEmptyBoard,
 	isSolved,
 	getNumbersCount,
-	checkByCell
+	checkByCell,
+	getGridByCell
 }
 

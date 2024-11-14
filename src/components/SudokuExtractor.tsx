@@ -2,6 +2,8 @@ import React, { useState, useEffect, SetStateAction, Dispatch } from 'react';
 import Tesseract from 'tesseract.js';
 import { isEmptyBoard } from '../actions/checkActions';
 import { t_board } from '../types/types';
+import { AiOutlineScan } from "react-icons/ai"
+import { CgSpinner } from "react-icons/cg"
 
 declare const cv: any
 
@@ -124,10 +126,14 @@ const SudokuExtractor: React.FC<Props> = ({ setSudokuBoard, setCustomGame }) => 
 	};
 
 	return (
-		<div>
-			<h1>Sudoku Extractor</h1>
-			<input type="file" accept="image/*" onChange={handleImageUpload} />
-			{loading && <p>Processing image...</p>}
+		<div className='text-slate-800 font-bold '>
+			<h1 className='text-xl'>Sudoku Extractor</h1>
+			<label htmlFor='file' className='cursor-pointer flex gap-2'>
+				<span className='text-slate-600'>{image ? image?.name : 'Select an image to scan'}</span>
+				<AiOutlineScan className=' text-2xl text-blue-400' />
+			</label>
+			<input type="file" id='file' hidden accept="image/*" onChange={handleImageUpload} />
+			{loading && <p className='text-md'>Processing image... <CgSpinner className=' inline text-2xl text-blue-400 animate-spin'/></p>}
 			{error && <p className='text-red-600'>{error}</p>}
 			{/* {sudokuBoard && (
         <div>

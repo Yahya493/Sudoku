@@ -56,6 +56,7 @@ const rollback = (fixedValues: t_board, values: t_board, cell: t_cell | null): t
 	}
 	if (isNineCell(values, cell)) {
 		clearCell(values, cell)
+		if (cell.row == 0 && cell.col == 0) return null
 		return rollback(fixedValues, values, getPreviousCell(cell))
 	}
 	return cell
@@ -76,7 +77,7 @@ const rollback = (fixedValues: t_board, values: t_board, cell: t_cell | null): t
 // 	}
 // }
 
-const recSolve = (fixedValues: t_board, values: t_board): t_board => {
+const recSolve = (fixedValues: t_board, values: t_board): t_board | null => {
 	let cell = { row: 0, col: 0 } as t_cell | null
 	while (cell) {
 		if (isFixedCell(fixedValues, cell)) {
@@ -86,6 +87,7 @@ const recSolve = (fixedValues: t_board, values: t_board): t_board => {
 		while (true) {
 			if (!incrementCell(values, cell)) {
 				cell = rollback(fixedValues, values, cell)
+				if (!cell) return null
 				break
 			}
 			if (!checkByCell(values, cell)) continue
@@ -211,8 +213,8 @@ const solve = (fixedValues: t_board): Promise<t_board | null> => {
 		// if (!addOnlyOneValueByGrid(solution)) resolve(null)
 		// if (!addOnlyOneValueCell(solution)) return null
 		try {
-			let solution2 = duplicateValues(fixedValues)
-			solution2 = recSolve(fixedValues, solution2)
+			let solution2 = duplicateValues(fixedValues) as t_board | null
+			solution2 = recSolve(fixedValues, solution2 as t_board)
 			resolve(solution2)
 		} catch (error) {
 			resolve(null)

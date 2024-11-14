@@ -286,7 +286,7 @@ const removeNumbers = (board: t_board, difficulty: t_difficulty): void => {
 			break
 	}
 	const unremovableCells = getUnremovableCells(board)
-	console.log('Unremovable cells:', unremovableCells)
+	// console.log('Unremovable cells:', unremovableCells)
 	while (cellsToRemove > 0) {
 		const cell = { row: Math.floor(Math.random() * 9), col: Math.floor(Math.random() * 9) }
 		if (!isEmptyCell(board, cell) && !containsCell(unremovableCells, cell)) {

@@ -152,7 +152,7 @@ function Game({ fixedValues, setFixedValues, solution, setSolution, difficulty, 
 						// if (getCellValue(newValues, selectedCell) != pressedKey) {
 						// 	setWrongCells(prev => prev.filter(cell => cell.row != selectedCell.row || cell.col != selectedCell.col))
 						// }
-						newValues[selectedCell.row][selectedCell.col] = pressedKey;
+						newValues[selectedCell.row][selectedCell.col] = pressedKey
 						if (historyIndex < history.current.length - 1)
 							history.current = history.current.filter((_, index) => index <= historyIndex)
 						history.current = [...history.current, newValues]
@@ -232,7 +232,15 @@ function Game({ fixedValues, setFixedValues, solution, setSolution, difficulty, 
 						selectedValue={selectedValue}
 					/>
 					<div className='w-fit self-center'>
-						<Keyboard setPressedKey={setPressedKey} counts={numbersCount} historyLenght={history.current.length} historyIndex={historyIndex} editing={editing} gameOver={gameOver} />
+						<Keyboard
+							setPressedKey={setPressedKey}
+							counts={numbersCount}
+							historyLenght={history.current.length}
+							historyIndex={historyIndex}
+							editing={editing}
+							gameOver={gameOver}
+							conflicte={!!conflictedCells.length}
+						/>
 					</div>
 				</div>
 			</div>

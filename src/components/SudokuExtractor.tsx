@@ -9,13 +9,15 @@ declare const cv: any
 
 type Props = {
 	setSudokuBoard: Dispatch<SetStateAction<t_board | null>>,
-	setCustomGame: Dispatch<SetStateAction<boolean>>
+	setCustomGame: Dispatch<SetStateAction<boolean>>,
+	loading: boolean,
+	setLoading: Dispatch<React.SetStateAction<boolean>>
 }
 
-const SudokuExtractor: React.FC<Props> = ({ setSudokuBoard, setCustomGame }) => {
+const SudokuExtractor: React.FC<Props> = ({ setSudokuBoard, setCustomGame, loading, setLoading }) => {
 	// const [sudokuBoard, setSudokuBoard] = useState<t_board | null>(null);
 	const [image, setImage] = useState<File | null>(null);
-	const [loading, setLoading] = useState(false);
+	// const [loading, setLoading] = useState<boolean>(false);
 	const [error, setError] = useState<string | null>(null)
 
 	// useEffect(() => {
@@ -126,31 +128,15 @@ const SudokuExtractor: React.FC<Props> = ({ setSudokuBoard, setCustomGame }) => 
 	};
 
 	return (
-		<div className='text-slate-800 font-bold '>
+		<div className='text-slate-800 font-bold flex flex-col items-center'>
 			<h1 className='text-xl'>Sudoku Extractor</h1>
 			<label htmlFor='file' className='cursor-pointer flex gap-2'>
-				<span className='text-slate-600'>{image ? image?.name : 'Select an image to scan'}</span>
+				<span className='text-slate-600 hover:text-blue-400'>{image ? image?.name : 'Select an image to scan'}</span>
 				<AiOutlineScan className=' text-2xl text-blue-400' />
 			</label>
 			<input type="file" id='file' hidden accept="image/*" onChange={handleImageUpload} />
 			{loading && <p className='text-md'>Processing image... <CgSpinner className=' inline text-2xl text-blue-400 animate-spin'/></p>}
 			{error && <p className='text-red-600'>{error}</p>}
-			{/* {sudokuBoard && (
-        <div>
-          <h2>Extracted Sudoku Board</h2>
-          <table>
-            <tbody>
-              {sudokuBoard.map((row, rowIndex) => (
-                <tr key={rowIndex}>
-                  {row.map((cell, cellIndex) => (
-                    <td key={cellIndex}>{cell !== 0 ? cell : ''}</td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )} */}
 		</div>
 	);
 };

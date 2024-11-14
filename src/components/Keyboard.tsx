@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction } from 'react';
 import { FaEraser, FaFileSignature, FaMagnifyingGlass } from "react-icons/fa6";
-import { IoArrowUndo, IoArrowRedo } from "react-icons/io5";
 import { HiLightBulb } from "react-icons/hi";
+import { IoArrowRedo, IoArrowUndo } from "react-icons/io5";
 import { t_numbers_count } from '../types/types';
 import Button from './Button';
 
@@ -12,8 +12,9 @@ type Props = {
 	historyIndex: number,
 	editing: boolean,
 	gameOver: boolean,
+	conflicte: boolean
 }
-const Keyboard = ({ setPressedKey, counts, historyIndex, historyLenght, editing, gameOver }: Props) => {
+const Keyboard = ({ setPressedKey, counts, historyIndex, historyLenght, editing, gameOver, conflicte }: Props) => {
 
 	return (
 		<div className=' bg-slate-200 w-fit'>
@@ -36,7 +37,7 @@ const Keyboard = ({ setPressedKey, counts, historyIndex, historyLenght, editing,
 				<Button label='Redo' value={11} disabled={historyIndex >= historyLenght - 1} setPressedKey={setPressedKey} icon={<IoArrowRedo />} />
 				<Button label='Hint' value={12} disabled={editing || gameOver} setPressedKey={setPressedKey} icon={<HiLightBulb />}/>
 				<Button label='Check' value={13} disabled={editing || gameOver} setPressedKey={setPressedKey} icon={<FaMagnifyingGlass />}/>
-				<Button label='Solve' value={14} disabled={gameOver} setPressedKey={setPressedKey} icon={<FaFileSignature />}/>
+				<Button label='Solve' value={14} disabled={(editing && conflicte) || gameOver} setPressedKey={setPressedKey} icon={<FaFileSignature />}/>
 			</div>
 		</div>
 	)

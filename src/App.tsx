@@ -83,6 +83,13 @@ function App() {
 		// getGame(difficulty).then(() => setPlay(true))
 	}
 
+	const newGame = async ({ custom = false }: { custom?: boolean }): Promise<t_board> => {
+		setCustomGame(custom)
+		if (custom)
+			return createEmptyBoard()
+		return await generateSudoku(difficulty)
+	}
+
 	// useEffect(() => {
 	//   getGame(difficulty).then(() => setPlay(true))
 	// }, [])
@@ -91,7 +98,16 @@ function App() {
 		<div className=' flex justify-center select-none'>
 			{play ?
 				<div className='w-fit'>
-					<Game fixedValues={game as t_board} setFixedValues={setGame} solution={solution as t_board} setSolution={setSolution} setPlay={setPlay} difficulty={difficulty} custom={customGame} />
+					<Game
+						fixedValues={game as t_board}
+						setFixedValues={setGame}
+						solution={solution as t_board}
+						setSolution={setSolution}
+						setPlay={setPlay}
+						difficulty={difficulty}
+						custom={customGame}
+						newGame={newGame}
+					/>
 				</div> :
 				<div className='w-10/12 md:w-1/2 h-fit px-4 py-8 bg-slate-300 rounded-xl flex flex-col gap-4 items-center font-bold text-slate-800 mt-10 border-4 border-blue-400'>
 					<h1 className=' text-4xl pb-3 border-b-2 w-full border-blue-400 '>Sudoku</h1>
@@ -109,10 +125,10 @@ function App() {
 							>HARD</button>
 						</div>
 					</div>
-					<button className={` w-3/4 px-6 py-2 rounded-xl ${loadingImage? 'bg-slate-400 cursor-default':'bg-slate-800 hover:text-green-400 text-slate-200 hover:bg-slate-600'}`}
+					<button className={` w-3/4 px-6 py-2 rounded-xl ${loadingImage ? 'bg-slate-400 cursor-default' : 'bg-slate-800 hover:text-green-400 text-slate-200 hover:bg-slate-600'}`}
 						onClick={handleStartGame} disabled={loadingImage}
 					>START</button>
-					<button className={` w-3/4 px-6 py-2 rounded-xl ${loadingImage? 'bg-slate-400 cursor-default':'bg-slate-800 hover:text-green-400 text-slate-200 hover:bg-slate-600'}`}
+					<button className={` w-3/4 px-6 py-2 rounded-xl ${loadingImage ? 'bg-slate-400 cursor-default' : 'bg-slate-800 hover:text-green-400 text-slate-200 hover:bg-slate-600'}`}
 						onClick={handleCustomGame} disabled={loadingImage}
 					>Custom Game</button>
 					<SudokuExtractor

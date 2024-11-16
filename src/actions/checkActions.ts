@@ -192,6 +192,16 @@ const numberCount = (values: t_board, nb: number): number => {
 	return count
 }
 
+const getFilledCells = (values: t_board): number => {
+	let count = 0
+	for (let i = 0; i < values.length; i++) {
+		for (let j = 0; j < values[0].length; j++) {
+			if (values[i][j]) count++
+		}
+	}
+	return count
+}
+
 const getNumbersCount = (values: t_board): t_numbers_count => {
 	return {
 		one: numberCount(values, 1),
@@ -276,6 +286,7 @@ export {
 	isSolved,
 	getNumbersCount,
 	checkByCell,
-	getGridByCell
+	getGridByCell,
+	getFilledCells
 }
 

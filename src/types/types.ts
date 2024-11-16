@@ -40,11 +40,17 @@ type t_check_solution = {
 	wrongCells: t_cell[]
 }
 
+type t_history = {
+	boards: t_board[],
+	index: number
+}
+
 export type { 
 	t_numbers_count,
 	t_check_result,
 	t_cell,
 	t_difficulty,
 	t_board,
-	t_check_solution
+	t_check_solution,
+	t_history
 }

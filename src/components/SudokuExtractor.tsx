@@ -1,9 +1,9 @@
-import React, { useState, useEffect, SetStateAction, Dispatch } from 'react';
-import Tesseract from 'tesseract.js';
-import { isEmptyBoard } from '../actions/checkActions';
-import { t_board } from '../types/types';
+import React, { Dispatch, FC, SetStateAction, useEffect, useState } from 'react'
 import { AiOutlineScan } from "react-icons/ai"
 import { CgSpinner } from "react-icons/cg"
+import Tesseract from 'tesseract.js'
+import { getFilledCells } from '../actions/checkActions'
+import { t_board } from '../types/types'
 
 declare const cv: any
 
@@ -14,131 +14,123 @@ type Props = {
 	setLoading: Dispatch<React.SetStateAction<boolean>>
 }
 
-const SudokuExtractor: React.FC<Props> = ({ setSudokuBoard, setCustomGame, loading, setLoading }) => {
-	// const [sudokuBoard, setSudokuBoard] = useState<t_board | null>(null);
-	const [image, setImage] = useState<File | null>(null);
-	// const [loading, setLoading] = useState<boolean>(false);
+const SudokuExtractor: FC<Props> = ({ setSudokuBoard, setCustomGame, loading, setLoading }) => {
+	const [image, setImage] = useState<File | null>(null)
 	const [error, setError] = useState<string | null>(null)
-
-	// useEffect(() => {
-	//   console.table(sudokuBoard)
-	// }, [sudokuBoard])
 
 	useEffect(() => {
 		setError(null)
 		if (image) {
-			processImage(image);
+			processImage(image)
 		}
-	}, [image]);
+	}, [image])
 
 	const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setCustomGame(true)
-		const file = e.target.files?.[0];
+		const file = e.target.files?.[0]
 		if (file) {
-			setImage(file);
+			setImage(file)
 		}
 	};
 
 	const processImage = async (file: File) => {
-		setLoading(true);
-		const imageUrl = URL.createObjectURL(file);
-		const imgElement = new Image();
+		setLoading(true)
+		const imageUrl = URL.createObjectURL(file)
+		const imgElement = new Image()
 		imgElement.src = imageUrl;
 
 		imgElement.onload = async () => {
-			const canvas = document.createElement('canvas');
-			canvas.width = imgElement.width;
-			canvas.height = imgElement.height;
-			const ctx = canvas.getContext('2d')!;
-			ctx.drawImage(imgElement, 0, 0);
+			const canvas = document.createElement('canvas')
+			
+			const maxDimension = 720
+			const scale = Math.min(maxDimension / imgElement.width, maxDimension / imgElement.height)
+			canvas.width = imgElement.width * scale
+			canvas.height = imgElement.height * scale
+			const ctx = canvas.getContext('2d')!
+			ctx.drawImage(imgElement, 0, 0, canvas.width, canvas.height)
 
-			const src = cv.imread(canvas);  // Use OpenCV to read the image
+			const src = cv.imread(canvas)
 
-			// Step 1: Convert to grayscale and threshold
-			cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY);
-			cv.adaptiveThreshold(src, src, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY_INV, 11, 2);
+			cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY)
+			cv.adaptiveThreshold(src, src, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY_INV, 11, 2)
 
-			// Step 2: Find contours (detect the largest contour as Sudoku grid)
-			const contours = new cv.MatVector();
-			const hierarchy = new cv.Mat();
-			cv.findContours(src, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+			const contours = new cv.MatVector()
+			const hierarchy = new cv.Mat()
+			cv.findContours(src, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
 
 			let largestContour = null;
 			let maxArea = 0;
 			for (let i = 0; i < contours.size(); i++) {
-				const contour = contours.get(i);
-				const area = cv.contourArea(contour, false);
+				const contour = contours.get(i)
+				const area = cv.contourArea(contour, false)
 				if (area > maxArea) {
 					maxArea = area;
 					largestContour = contour;
 				}
 			}
-
-			// Assume largest contour is the Sudoku board; perform perspective transform
 			if (largestContour) {
-				// Perspective transform setup
-				const board = performWarp(src, largestContour);
-
-				// Split the grid into 9x9 cells and perform OCR on each
-				const extractedDigits = await extractDigits(board);
-				if (isEmptyBoard(extractedDigits)) {
+				const board = performWarp(src, largestContour)
+				const extractedDigits = await extractDigits(board)
+				if (getFilledCells(extractedDigits) < 20) {
 					setError('Unclear or incomplete image')
 				}
 				else {
-					setSudokuBoard(extractedDigits);
+					setSudokuBoard(extractedDigits)
 				}
 			}
-
-			src.delete();
-			contours.delete();
-			hierarchy.delete();
-			setLoading(false);
+			src.delete()
+			contours.delete()
+			hierarchy.delete()
+			setLoading(false)
 		};
 	};
 
-	// Helper function to perform perspective warp to get a top-down view of Sudoku grid
 	const performWarp = (src: any, contour: any) => {
-		const rect = cv.boundingRect(contour);
-		const dst = src.roi(rect);
-		cv.resize(dst, dst, new cv.Size(576, 576)); // 28x28 cells for 9x9 grid
-		return dst;
-	};
+		const rect = cv.boundingRect(contour)
+		const dst = src.roi(rect)
+		cv.resize(dst, dst, new cv.Size(576, 576))
+		return dst
+	}
 
-	// Function to split into cells and recognize digits with Tesseract
 	const extractDigits = async (board: any): Promise<t_board> => {
-		const cellSize = board.size().width / 9;
-		const sudokuArray: t_board = Array.from({ length: 9 }, () => Array(9).fill(0));
+		const cellSize = board.size().width / 9
+		const sudokuArray: t_board = Array.from({ length: 9 }, () => Array(9).fill(0))
 
 		for (let y = 0; y < 9; y++) {
 			for (let x = 0; x < 9; x++) {
-				const cell = board.roi(new cv.Rect(x * cellSize, y * cellSize, cellSize, cellSize));
-				const canvas = document.createElement('canvas');
-				cv.imshow(canvas, cell);
+				const cell = board.roi(new cv.Rect(x * cellSize, y * cellSize, cellSize, cellSize))
+				const canvas = document.createElement('canvas')
+				cv.imshow(canvas, cell)
 
 				const result = await Tesseract.recognize(canvas)
-				// .then(({ data }) => {
 				const digit = parseInt(result.data.text) || 0;
-				sudokuArray[y][x] = digit > 9 ? Math.floor(digit / 10) : digit;
-				// });
-				cell.delete();
+				sudokuArray[y][x] = digit > 9 ? Math.floor(digit / 10) : digit
+				cell.delete()
 			}
 		}
-		// console.table(sudokuArray)
-		return sudokuArray;
-	};
+		return sudokuArray
+	}
+
+	const getFileName = () => {
+		if (!image) return null
+		let name = image?.name
+		if (image?.name.length > 24)
+			name = image?.name.slice(0, 15) + '...' + image?.name.slice(image?.name.length - 8, image?.name.length)
+		return name
+	}
 
 	return (
 		<div className='text-slate-800 font-bold flex flex-col items-center'>
 			<h1 className='text-xl'>Sudoku Extractor</h1>
 			<label htmlFor='file' className='cursor-pointer flex gap-2'>
-				<span className='text-slate-600 hover:text-blue-400'>{image ? image?.name : 'Select an image to scan'}</span>
+				<span className='text-slate-600 hover:text-blue-400'>{image ? getFileName() : 'Select an image to scan'}</span>
 				<AiOutlineScan className=' text-2xl text-blue-400' />
 			</label>
 			<input type="file" id='file' hidden accept="image/*" onChange={handleImageUpload} />
-			{loading && <p className='text-md'>Processing image... <CgSpinner className=' inline text-2xl text-blue-400 animate-spin'/></p>}
+			{loading && <p className='text-md'>Processing image... <CgSpinner className=' inline text-2xl text-blue-400 animate-spin' /></p>}
 			{error && <p className='text-red-600'>{error}</p>}
 		</div>
-	);
+	)
 };
 
 export default SudokuExtractor;

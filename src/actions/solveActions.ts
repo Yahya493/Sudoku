@@ -50,7 +50,6 @@ const clearCell = (values: t_board, cell: t_cell): void => {
 
 const rollback = (fixedValues: t_board, values: t_board, cell: t_cell | null): t_cell | null => {
 	if (!cell) return null
-	// console.log('value: ',values[cell.row][cell.col], cell)
 	if (isFixedCell(fixedValues, cell)) {
 		return rollback(fixedValues, values, getPreviousCell(cell))
 	}
@@ -207,8 +206,10 @@ const duplicateValues = (fixedValues: t_board): t_board => {
 
 const solve = (fixedValues: t_board): Promise<t_board | null> => {
 	return new Promise((resolve) => {
-		if (checkAll(fixedValues).status != 'PASSED')
+		if (checkAll(fixedValues).status != 'PASSED') {
 			resolve(null)
+			return
+		}
 		// let solution = duplicateValues(fixedValues)
 		// if (!addOnlyOneValueByGrid(solution)) resolve(null)
 		// if (!addOnlyOneValueCell(solution)) return null
@@ -254,10 +255,17 @@ const checkSolution = (solution: t_board | null, values: t_board): t_check_solut
 				wrongCells = [...wrongCells, cell]
 		}
 	}
-	return {correct: !wrongCells.length, cellsLeft, wrongCells}
+	return { correct: !wrongCells.length, cellsLeft, wrongCells }
 }
 
 export {
-	checkSolution, getCellValue, getHint, incrementCell, isEmptyCell, isFixedCell, solve, setCellValue
+	checkSolution,
+	getCellValue,
+	getHint,
+	incrementCell,
+	isEmptyCell,
+	isFixedCell,
+	solve,
+	setCellValue
 }
 

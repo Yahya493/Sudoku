@@ -1,5 +1,6 @@
 import { Dispatch, SetStateAction } from "react"
 import { FaX } from "react-icons/fa6"
+import { CiSquareQuestion } from "react-icons/ci"
 
 type Props = {
 	row: number,
@@ -26,21 +27,21 @@ const Cell = ({ row, col, value, editable = true, selected = false, highlighted 
 		// setValue((value + 1) % 10)
 	}
 	return (
-		<div className={` block w-9 md:w-12 aspect-square relative rounded-md m-0.5
+		<div className={` w-9 md:w-12 aspect-square relative flex justify-center items-center rounded-md m-0.5
 				${editable && !covered ? 'cursor-pointer hover:bg-slate-500 ' : ''}
 				${selected && editable && !covered ? 'bg-slate-500 ' : (highlighted && !covered ? 'bg-blue-600' : 'bg-slate-800')}`
 		}
 			onClick={handleEdit}>
-			<div className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2/3 h-2/3 aspect-square rounded-full ${conflected && !covered ? ' border-2 border-red-500' : ''}`}>
+			<div className={`z-10 w-2/3 h-2/3 aspect-square rounded-full ${conflected && !covered ? ' border-2 border-red-500' : ''}`}>
 				{value ?
-					<span className={` font-bold md:text-xl ${editable && !covered ? ' text-green-400' : ''} `}>
-						{covered ? '?' : value}
+					<span className={` h-full font-bold md:text-xl flex justify-center items-center ${editable && !covered ? ' text-green-400' : ''} `}>
+						{covered ? <CiSquareQuestion /> : value}
 					</span> :
 					null}
 			</div>
 			{
 				wrong && !covered ?
-					<div className={`flex justify-center items-center w-full h-full text-2xl text-red-500`}>
+					<div className={`absolute flex justify-center items-center w-full h-full text-2xl text-red-500`}>
 						<FaX />
 					</div> :
 					null
